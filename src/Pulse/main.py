@@ -15,7 +15,7 @@ from logger import Logger
 
 from lib.collector import Collector
 from lib.config import FIELDS, Config
-from lib.instances import stop_older_instances
+from lib.instances import InstanceLock
 from lib.server import App, NoFreePort, WebServer
 from lib.store import Store, retention_seconds
 
@@ -142,7 +142,9 @@ def describe(values: dict) -> str:
     )
 
 
-def run(stop: threading.Event, collector: Collector, store: Store, config: Config, launcher, interval_override: int) -> None:
+def run(stop: threading.Event, collector: Collector, store: Store, config: Config, launcher, interval_override: int,
+        watch_code: bool) -> bool:
+    """Samples until stopped. Returns True when an update replaced this copy of Pulse."""
     now = time.monotonic()
     next_flush = now + FLUSH_EVERY_S
     next_maintain = now + 60  # first clean-up a minute after start
@@ -150,6 +152,10 @@ def run(stop: threading.Event, collector: Collector, store: Store, config: Confi
     clock_warned = False
     samples = 0
     while not stop.is_set():
+        if watch_code and not os.path.isdir(APP_DIR):
+            # Orbit OS removes the old code when it installs an update
+            Logger.warn(LOG_TAG, "this copy of Pulse was replaced by an update: handing over")
+            return True
         started = time.monotonic()
         values = collector.sample()
         samples += 1
@@ -188,6 +194,7 @@ def run(stop: threading.Event, collector: Collector, store: Store, config: Confi
 
         interval = interval_override or config.get("interval_s")
         stop.wait(max(1.0, interval - (time.monotonic() - started)))
+    return False
 
 
 def main() -> int:
@@ -217,19 +224,18 @@ def main() -> int:
     data_dir = os.path.abspath(data_dir)
     os.makedirs(data_dir, exist_ok=True)
 
-    if on_device:
-        # an update can leave an older Pulse running: one database, one instance
-        stopped = stop_older_instances()
-        if stopped:
-            Logger.warn(LOG_TAG, f"stopped {len(stopped)} older Pulse process(es): {stopped}")
+    stop = threading.Event()
+    signal.signal(signal.SIGTERM, lambda *_: stop.set())
+    signal.signal(signal.SIGINT, lambda *_: stop.set())
+
+    # One database, one active Pulse (an update can leave an extra process running).
+    lock = InstanceLock(data_dir)
+    if not lock.acquire(stop, lambda: Logger.warn(LOG_TAG, "another Pulse is active: waiting for it to stop")):
+        return 0
 
     config = Config(data_dir)
     store = Store(data_dir)
     log_database(store)
-
-    stop = threading.Event()
-    signal.signal(signal.SIGTERM, lambda *_: stop.set())
-    signal.signal(signal.SIGINT, lambda *_: stop.set())
 
     with Client.connect(args.host) as client:
         collector = Collector(client, on_device)
@@ -257,8 +263,9 @@ def main() -> int:
             launcher = None
             Logger.error(LOG_TAG, f"no web page: {e}. Recording continues.")
 
+        replaced = False
         try:
-            run(stop, collector, store, config, launcher, args.interval)
+            replaced = run(stop, collector, store, config, launcher, args.interval, watch_code=on_device)
         finally:
             Logger.info(LOG_TAG, "Stopping")
             try:
@@ -266,10 +273,16 @@ def main() -> int:
                 store.aggregate()
             except sqlite3.Error as e:
                 Logger.error(LOG_TAG, f"database write: {e}")
-            if launcher is not None:
+            # after an update the new copy registers the page itself
+            if launcher is not None and not replaced:
                 launcher.unregister()
             web.stop()
             store.close()
+            lock.release()
+    if replaced:
+        # Stay idle instead of exiting: Orbit OS would count this exit as the new copy's.
+        while not stop.wait(60):
+            pass
     return 0
 
 
