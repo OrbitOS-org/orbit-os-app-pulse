@@ -90,6 +90,15 @@
     num: (v) => v.toFixed(2),
   };
 
+  // axis ticks are round numbers: no trailing zeros ("0 %", "2.5 kB/s", "46 °C")
+  const TICK = {
+    pct: (v) => `${+v.toFixed(2)} %`,
+    c: (v) => `${+v.toFixed(1)} °C`,
+    bps: (v) => `${bytes(v).replace(/\.0 /, " ")}/s`,
+    bytes: (v) => bytes(v).replace(/\.0 /, " "),
+    num: (v) => `${+v.toFixed(3)}`,
+  };
+
   function duration(sec) {
     sec = Math.max(0, Math.floor(sec));
     const d = Math.floor(sec / 86400), hr = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60);
@@ -315,7 +324,7 @@
       for (const v of scale.ticks) {
         svg.append(s("line", { x1: m.l, x2: m.l + pw, y1: y(v), y2: y(v), stroke: css(v === 0 ? "--axis" : "--grid"), "stroke-width": 1, "shape-rendering": "crispEdges" }));
         const t = s("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end" });
-        t.textContent = fmt(v);
+        t.textContent = TICK[this.def.unit](v);
         svg.append(t);
       }
       for (const [t, text] of timeTicks(t0, t1, Math.max(2, Math.floor(pw / 90)))) {
