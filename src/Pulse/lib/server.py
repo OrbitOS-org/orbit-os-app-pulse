@@ -204,20 +204,20 @@ class Handler(BaseHTTPRequestHandler):
             raise BadRequest("invalid time range")
         return t_from, t_to
 
-    def _keys(self, q: dict) -> list[str]:
+    def _keys(self, q: dict, limit: int) -> list[str]:
         keys = [k for k in q.get("key", []) if k]
         prefixes = [p for p in q.get("prefix", []) if p]
+        if not keys and not prefixes:
+            raise BadRequest("give at least one key or prefix")
         if prefixes:
             keys += [k for k in self.app.store.keys() if any(k.startswith(p) for p in prefixes) and k not in keys]
-        if not keys:
-            raise BadRequest("give at least one key or prefix")
-        return keys[:64]
+        return keys[:limit]
 
-    def _query(self, q: dict, max_points: int) -> dict:
+    def _query(self, q: dict, max_points: int, key_limit: int = 64) -> dict:
         t_from, t_to = self._range(q)
         cfg = self.app.config.as_dict()
         return self.app.store.query(
-            self._keys(q),
+            self._keys(q, key_limit),
             t_from,
             t_to,
             raw_step=cfg["interval_s"],
@@ -233,7 +233,7 @@ class Handler(BaseHTTPRequestHandler):
         self._json(self._query(q, max(10, min(MAX_POINTS, points))))
 
     def _export(self, q: dict) -> None:
-        result = self._query(q, max_points=100_000)
+        result = self._query(q, max_points=100_000, key_limit=1000)
         out = io.StringIO()
         w = csv.writer(out, lineterminator="\n")
         w.writerow(["time_utc", "unix_ts", "key", "avg", "min", "max"])
