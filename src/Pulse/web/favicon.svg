@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Pulse">
+  <!-- Pulse: a heartbeat line over a short history of bars (live reading over recorded data). -->
+  <rect width="64" height="64" rx="10" fill="#0a0f1a"/>
+  <g fill="#694cdb">
+    <rect x="10" y="40" width="6" height="12" rx="1.5"/>
+    <rect x="19" y="34" width="6" height="18" rx="1.5"/>
+    <rect x="28" y="38" width="6" height="14" rx="1.5"/>
+    <rect x="37" y="30" width="6" height="22" rx="1.5"/>
+    <rect x="46" y="36" width="6" height="16" rx="1.5"/>
+  </g>
+  <polyline points="10,30 20,30 24.5,21 30,40 36,12 41,30 48.5,30" fill="none" stroke="#0a0f1a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="10,30 20,30 24.5,21 30,40 36,12 41,30 48.5,30" fill="none" stroke="#2dd4bf" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="53.5" cy="30" r="5" fill="#0a0f1a"/>
+  <circle cx="53.5" cy="30" r="3.2" fill="#2dd4bf"/>
+</svg>

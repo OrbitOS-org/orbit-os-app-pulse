@@ -1,0 +1,14 @@
+# SDK: downloaded by Orbit Studio (Add/Update SDK), never committed
+orbit-os-sdk-python/
+# development certificates
+certs/
+**/certs/grpc/*.crt
+**/certs/grpc/*.key
+.venv/
+packages/
+__pycache__/
+*.pyc
+.DS_Store
+orbit.project.local.json
+# data Pulse records when it runs on this computer (development)
+.pulse-data/

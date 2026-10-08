@@ -1,0 +1,4 @@
+# External pip packages bundled into the ORB at build time.
+# One package per line, e.g.:
+#   requests>=2.28.0
+#   numpy

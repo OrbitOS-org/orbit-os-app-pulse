@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pulse</title>
+  <link rel="icon" href="favicon.svg?v={{version}}" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v={{version}}">
+</head>
+<body>
+  <header class="top">
+    <img class="logo" src="favicon.svg?v={{version}}" alt="" width="40" height="40">
+    <div class="title">
+      <h1>Pulse</h1>
+      <p id="device" class="muted">Connecting…</p>
+    </div>
+    <p id="mode" class="badge" hidden>Development: Pulse runs on this computer and keeps its data here</p>
+  </header>
+
+  <main>
+    <nav class="filters" aria-label="Time range">
+      <div class="seg" id="ranges" role="group" aria-label="Time range"></div>
+      <span id="status" class="muted" aria-live="polite"></span>
+    </nav>
+
+    <section class="tiles" id="tiles" aria-label="Now"></section>
+
+    <section class="charts" id="charts"></section>
+
+    <section class="card apps" aria-labelledby="apps-title">
+      <div class="card-head">
+        <h2 id="apps-title">Apps</h2>
+        <span class="muted" id="apps-note"></span>
+      </div>
+      <div class="table-scroll">
+        <table id="apps">
+          <thead>
+            <tr><th scope="col">App</th><th scope="col">Status</th><th scope="col" class="num">CPU</th><th scope="col" class="num">Memory</th><th scope="col" class="num">Running for</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="charts app-charts" id="app-charts"></div>
+    </section>
+
+    <details class="card settings" id="settings">
+      <summary><h2>Recording</h2><span class="muted">What Pulse keeps and for how long</span></summary>
+      <div class="settings-body">
+        <form id="config-form" novalidate>
+          <label>Sample every <span class="field"><input name="interval_s" type="number" min="10" max="300" step="1" required> seconds</span></label>
+          <label>Keep every sample for <span class="field"><input name="retention_raw_h" type="number" min="1" max="168" step="1" required> hours</span></label>
+          <label>Keep 5-minute averages for <span class="field"><input name="retention_5m_d" type="number" min="1" max="365" step="1" required> days</span></label>
+          <label>Keep hourly averages for <span class="field"><input name="retention_1h_d" type="number" min="7" max="3650" step="1" required> days</span></label>
+          <label>Limit the database to <span class="field"><input name="max_db_mb" type="number" min="10" max="4000" step="1" required> MB</span></label>
+          <div class="form-actions">
+            <button type="submit" class="primary">Save</button>
+            <span id="config-msg" class="muted" role="status"></span>
+          </div>
+        </form>
+        <div class="db">
+          <h3>Database</h3>
+          <dl id="db-stats"></dl>
+          <a id="export" class="button" href="api/export.csv" download>Download CSV for the selected range</a>
+        </div>
+      </div>
+    </details>
+  </main>
+
+  <footer class="muted">Pulse {{version}} · The data stays on this device.</footer>
+  <script src="app.js?v={{version}}"></script>
+</body>
+</html>

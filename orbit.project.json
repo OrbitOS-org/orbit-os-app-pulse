@@ -1,0 +1,7 @@
+{
+  "language": "python",
+  "name": "Pulse",
+  "appPath": "src/Pulse",
+  "certsDir": "certs/grpc",
+  "sdkVersion": "v26.1.0"
+}
