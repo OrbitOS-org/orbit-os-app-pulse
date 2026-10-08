@@ -34,6 +34,7 @@ class Collector:
         self._proc = proc
         self._sys = sys
         self._prev: dict[str, tuple[float, dict[str, float]]] = {}
+        self._last_rates: dict[str, dict[str, float]] = {}
         self._failing: set[str] = set()
         self._info: dict | None = None
         self._lock = threading.Lock()
@@ -113,14 +114,18 @@ class Collector:
     def _rates(self, name: str, clock: float, counters: dict[str, float]) -> dict[str, float]:
         """Per-second rates against the previous reading of the same counters."""
         prev = self._prev.get(name)
+        if prev is not None and clock == prev[0]:
+            # the same snapshot as last time: its rates are still the latest known
+            return dict(self._last_rates.get(name, {}))
         self._prev[name] = (clock, counters)
-        if prev is None:
-            return {}
+        if prev is None or clock < prev[0]:
+            self._last_rates.pop(name, None)
+            return {}  # first reading, or the counters restarted (reboot)
         dt = clock - prev[0]
-        if dt <= 0:
-            return {}  # same snapshot, or the counters restarted (reboot)
         old = prev[1]
-        return {k: (v - old[k]) / dt for k, v in counters.items() if k in old and v >= old[k]}
+        rates = {k: (v - old[k]) / dt for k, v in counters.items() if k in old and v >= old[k]}
+        self._last_rates[name] = rates
+        return rates
 
     def _read(self, *parts: str) -> str:
         with open(os.path.join(*parts), encoding="utf-8", errors="replace") as f:

@@ -99,6 +99,14 @@ class CollectorTest(unittest.TestCase):
         c.sample()
         self.assertNotIn("disk.read_bps", c.sample())
 
+    def test_unchanged_snapshot_repeats_the_last_rate(self):
+        client = FakeClient()
+        client.snapshots = [metrics(100, read_bytes=0), metrics(120, read_bytes=2000), metrics(120, read_bytes=2000)]
+        c = Collector(client, on_device=False)
+        c.sample()
+        self.assertEqual(c.sample()["disk.read_bps"], 100.0)
+        self.assertEqual(c.sample()["disk.read_bps"], 100.0)
+
     def test_failures_are_reported_once(self):
         client = FakeClient()
         client.system_manager = NS(get_metrics=mock.Mock(side_effect=OSError("down")))
