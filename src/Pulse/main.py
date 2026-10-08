@@ -15,6 +15,7 @@ from logger import Logger
 
 from lib.collector import Collector
 from lib.config import FIELDS, Config
+from lib.instances import stop_older_instances
 from lib.server import App, NoFreePort, WebServer
 from lib.store import Store, retention_seconds
 
@@ -199,6 +200,12 @@ def main() -> int:
         data_dir = os.path.join(APP_DIR, "..", "..", ".pulse-data")
     data_dir = os.path.abspath(data_dir)
     os.makedirs(data_dir, exist_ok=True)
+
+    if on_device:
+        # an update can leave an older Pulse running: one database, one instance
+        stopped = stop_older_instances()
+        if stopped:
+            Logger.warn(LOG_TAG, f"stopped {len(stopped)} older Pulse process(es): {stopped}")
 
     config = Config(data_dir)
     store = Store(data_dir)
