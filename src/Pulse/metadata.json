@@ -2,7 +2,7 @@
   "package_id": "org.orbit-os.tools.pulse",
   "name": "Pulse",
   "slug": "pulse",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Records CPU, memory, temperature, disk and network use over time, with charts in the Launcher.",
   "entry_point": "main.py",
   "permissions": [
