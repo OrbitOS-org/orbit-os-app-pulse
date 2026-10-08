@@ -160,6 +160,9 @@ class Store:
                     "INSERT OR REPLACE INTO raw (series_id, ts, value) VALUES (?, ?, ?)",
                     [(self._ids[k], ts, v) for ts, k, v in rows],
                 )
+                newest = max(ts for ts, _, _ in rows)
+                if newest > (self._meta("newest_ts") or 0):
+                    self._set_meta("newest_ts", newest)
                 self._w.execute("COMMIT")
             except sqlite3.Error:
                 self._rollback()
@@ -169,6 +172,14 @@ class Store:
                     self._buf[:0] = rows
                 raise
         return len(rows)
+
+    def newest(self) -> int | None:
+        """Time of the most recent sample written, or None for an empty database."""
+        with self._write_lock:
+            ts = self._meta("newest_ts")
+            if ts is None:  # databases written before the marker existed
+                ts = self._w.execute("SELECT MAX(ts) FROM raw").fetchone()[0]
+            return None if ts is None else int(ts)
 
     def _rollback(self) -> None:
         try:

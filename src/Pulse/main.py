@@ -31,7 +31,8 @@ DEVICE_SOCKET = "/run/gravity/ipc/system_server.sock"
 FLUSH_EVERY_S = 60        # write the buffered samples to the database
 MAINTAIN_EVERY_S = 3600   # apply retention and the size limit
 LAUNCHER_CHECK_S = 300    # the Launcher keeps registrations in memory: check ours is there
-# Before this date the clock is not set yet (no RTC, NTP not synced): don't record.
+# A device without a battery-backed clock starts with a wrong time until NTP sets it.
+# Pulse records only when the clock is past this date and not behind its newest sample.
 VALID_CLOCK = 1_700_000_000
 
 ERROR_ALREADY_EXISTS = 4  # types.ErrorCode
@@ -150,6 +151,7 @@ def run(stop: threading.Event, collector: Collector, store: Store, config: Confi
     next_maintain = now + 60  # first clean-up a minute after start
     next_check = now + LAUNCHER_CHECK_S
     clock_warned = False
+    newest = store.newest() or 0
     samples = 0
     while not stop.is_set():
         if watch_code and not os.path.isdir(APP_DIR):
@@ -161,11 +163,15 @@ def run(stop: threading.Event, collector: Collector, store: Store, config: Confi
         samples += 1
         if samples == 3:  # rates need earlier readings: by now every source has given what it can
             Logger.info(LOG_TAG, f"sampling: {describe(values)}")
-        wall = time.time()
-        if wall >= VALID_CLOCK:
-            store.add(int(wall), values)
+        wall = int(time.time())
+        if wall >= VALID_CLOCK and wall >= newest:
+            store.add(wall, values)
+            newest = wall
+            if clock_warned:
+                Logger.info(LOG_TAG, "the clock is set: recording again")
+                clock_warned = False
         elif not clock_warned:
-            Logger.warn(LOG_TAG, "the clock is not set yet: samples are not recorded until it is")
+            Logger.warn(LOG_TAG, "the clock is behind the last sample (not set yet?): not recording until it catches up")
             clock_warned = True
 
         if started >= next_flush:

@@ -31,6 +31,15 @@ class StoreTest(unittest.TestCase):
         self.assertEqual(self.store.keys(), ["a"])
         self.assertEqual(self.store.flush(), 0)
 
+    def test_newest_sample_survives_a_restart(self):
+        self.assertIsNone(self.store.newest())
+        self.fill(T0, T0 + 300)
+        self.store.flush()
+        self.assertEqual(self.store.newest(), T0 + 270)
+        self.store.close()
+        self.store = Store(self.tmp.name, clock=lambda: self.now)
+        self.assertEqual(self.store.newest(), T0 + 270)
+
     def test_rollup_5m_and_1h(self):
         self.fill(T0, T0 + 7200, value=lambda t: 10.0 if (t - T0) < 3600 else 30.0)
         self.store.flush()
