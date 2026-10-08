@@ -44,7 +44,7 @@
     },
   ];
 
-  const state = { range: 3600, info: null, config: null, charts: [], appCharts: [], selectedApp: "", timer: 0 };
+  const state = { range: 3600, tab: "dashboard", info: null, config: null, charts: [], appCharts: [], selectedApp: "", timer: 0 };
 
   // ── small helpers ─────────────────────────────────────────────────────────
 
@@ -534,13 +534,15 @@
 
   async function loadStats() {
     const st = await getJSON("api/stats");
-    const when = (t) => (t ? dateTime.format(new Date(t * 1000)) : "—");
+    const tier = (t) => (t.rows
+      ? `${t.rows.toLocaleString()} rows since ${dateTime.format(new Date(t.oldest * 1000))}`
+      : "none yet");
     const rows = [
       ["Size", bytes(st.file_bytes)],
       ["Series", String(st.series)],
-      ["Every sample", `${st.tiers.raw.rows.toLocaleString()} rows, since ${when(st.tiers.raw.oldest)}`],
-      ["5-minute averages", `${st.tiers["5m"].rows.toLocaleString()} rows, since ${when(st.tiers["5m"].oldest)}`],
-      ["Hourly averages", `${st.tiers["1h"].rows.toLocaleString()} rows, since ${when(st.tiers["1h"].oldest)}`],
+      ["Every sample", tier(st.tiers.raw)],
+      ["5-minute averages", tier(st.tiers["5m"])],
+      ["Hourly averages", tier(st.tiers["1h"])],
     ];
     document.getElementById("db-stats").replaceChildren(...rows.flatMap(([k, v]) => [h("dt", { text: k }), h("dd", { text: v })]));
   }
@@ -586,10 +588,13 @@
   // ── page ──────────────────────────────────────────────────────────────────
 
   async function refresh() {
+    if (state.tab === "settings") {
+      await loadStats().catch(() => {});
+      return;
+    }
     const box = document.getElementById("charts");
     box.classList.add("loading");
     const jobs = [loadTiles(), loadApps(), ...state.charts.map((c) => c.load()), ...state.appCharts.map((c) => c.load())];
-    if (document.getElementById("settings").open) jobs.push(loadStats());
     const results = await Promise.allSettled(jobs);
     box.classList.remove("loading");
     const failed = results.find((r) => r.status === "rejected");
@@ -603,6 +608,22 @@
     const interval = (state.config && state.config.interval_s) || 30;
     const every = state.range <= 86400 ? Math.max(10, interval) : 300;
     state.timer = setInterval(() => { if (!document.hidden) refresh(); }, every * 1000);
+  }
+
+  function setTab(tab, focus) {
+    state.tab = tab;
+    for (const name of ["dashboard", "settings"]) {
+      const btn = document.getElementById(`tab-${name}`);
+      const on = name === tab;
+      btn.setAttribute("aria-selected", String(on));
+      btn.tabIndex = on ? 0 : -1;
+      document.getElementById(`view-${name}`).hidden = !on;
+      if (on && focus) btn.focus();
+    }
+    const hash = tab === "settings" ? "#settings" : "";
+    if (location.hash !== hash) history.replaceState(null, "", hash || location.pathname + location.search);
+    if (tab === "settings") fillForm();
+    refresh();
   }
 
   function setRange(range) {
@@ -630,7 +651,17 @@
     document.getElementById("charts").replaceChildren(...state.charts.map((c) => c.card));
 
     document.getElementById("config-form").addEventListener("submit", saveConfig);
-    document.getElementById("settings").addEventListener("toggle", (e) => { if (e.target.open) loadStats().catch(() => {}); });
+    for (const name of ["dashboard", "settings"]) {
+      const btn = document.getElementById(`tab-${name}`);
+      btn.addEventListener("click", () => setTab(name));
+      btn.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+          setTab(name === "dashboard" ? "settings" : "dashboard", true);
+          e.preventDefault();
+        }
+      });
+    }
+    if (location.hash === "#settings") state.tab = "settings";
     document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
 
     try {
@@ -646,7 +677,7 @@
     }
     updateExport();
     schedule();
-    refresh();
+    setTab(state.tab);
   }
 
   init();

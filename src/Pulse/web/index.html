@@ -17,53 +17,69 @@
     <p id="mode" class="badge" hidden>Development: Pulse runs on this computer and keeps its data here</p>
   </header>
 
+  <div class="tabbar">
+    <div class="tabs" role="tablist" aria-label="Pulse">
+      <button type="button" role="tab" id="tab-dashboard" aria-controls="view-dashboard" aria-selected="true">Dashboard</button>
+      <button type="button" role="tab" id="tab-settings" aria-controls="view-settings" aria-selected="false" tabindex="-1">Settings</button>
+    </div>
+  </div>
+
   <main>
-    <nav class="filters" aria-label="Time range">
-      <div class="seg" id="ranges" role="group" aria-label="Time range"></div>
-      <span id="status" class="muted" aria-live="polite"></span>
-    </nav>
+    <section id="view-dashboard" role="tabpanel" aria-labelledby="tab-dashboard">
+      <nav class="filters" aria-label="Time range">
+        <div class="seg" id="ranges" role="group" aria-label="Time range"></div>
+        <span id="status" class="muted" aria-live="polite"></span>
+        <a id="export" class="button export" href="api/export.csv" download title="Every series in the selected range, as CSV">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Download CSV
+        </a>
+      </nav>
 
-    <section class="tiles" id="tiles" aria-label="Now"></section>
+      <section class="tiles" id="tiles" aria-label="Now"></section>
 
-    <section class="charts" id="charts"></section>
+      <section class="charts" id="charts"></section>
 
-    <section class="card apps" aria-labelledby="apps-title">
-      <div class="card-head">
-        <h2 id="apps-title">Apps</h2>
-        <span class="muted" id="apps-note"></span>
-      </div>
-      <div class="table-scroll">
-        <table id="apps">
-          <thead>
-            <tr><th scope="col">App</th><th scope="col">Status</th><th scope="col" class="num">CPU</th><th scope="col" class="num">Memory</th><th scope="col" class="num">Running for</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="charts app-charts" id="app-charts"></div>
+      <section class="card apps" aria-labelledby="apps-title">
+        <div class="card-head">
+          <h2 id="apps-title">Apps</h2>
+          <span class="muted" id="apps-note"></span>
+        </div>
+        <div class="table-scroll">
+          <table id="apps">
+            <thead>
+              <tr><th scope="col">App</th><th scope="col">Status</th><th scope="col" class="num">CPU</th><th scope="col" class="num">Memory</th><th scope="col" class="num">Running for</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="charts app-charts" id="app-charts"></div>
+      </section>
     </section>
 
-    <details class="card settings" id="settings">
-      <summary><h2>Recording</h2><span class="muted">What Pulse keeps and for how long</span></summary>
-      <div class="settings-body">
-        <form id="config-form" novalidate>
-          <label>Sample every <span class="field"><input name="interval_s" type="number" min="10" max="300" step="1" required> seconds</span></label>
-          <label>Keep every sample for <span class="field"><input name="retention_raw_h" type="number" min="1" max="168" step="1" required> hours</span></label>
-          <label>Keep 5-minute averages for <span class="field"><input name="retention_5m_d" type="number" min="1" max="365" step="1" required> days</span></label>
-          <label>Keep hourly averages for <span class="field"><input name="retention_1h_d" type="number" min="7" max="3650" step="1" required> days</span></label>
-          <label>Limit the database to <span class="field"><input name="max_db_mb" type="number" min="10" max="4000" step="1" required> MB</span></label>
-          <div class="form-actions">
-            <button type="submit" class="primary">Save</button>
-            <span id="config-msg" class="muted" role="status"></span>
-          </div>
-        </form>
-        <div class="db">
-          <h3>Database</h3>
+    <section id="view-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+      <div class="settings-grid">
+        <section class="card" aria-labelledby="rec-title">
+          <h2 id="rec-title">Recording</h2>
+          <p class="muted lead">What Pulse keeps and for how long. Older data is removed at the hourly clean-up.</p>
+          <form id="config-form" novalidate>
+            <label>Sample every <span class="field"><input name="interval_s" type="number" min="10" max="300" step="1" required> seconds</span></label>
+            <label>Keep every sample for <span class="field"><input name="retention_raw_h" type="number" min="1" max="168" step="1" required> hours</span></label>
+            <label>Keep 5-minute averages for <span class="field"><input name="retention_5m_d" type="number" min="1" max="365" step="1" required> days</span></label>
+            <label>Keep hourly averages for <span class="field"><input name="retention_1h_d" type="number" min="7" max="3650" step="1" required> days</span></label>
+            <label>Limit the database to <span class="field"><input name="max_db_mb" type="number" min="10" max="4000" step="1" required> MB</span></label>
+            <div class="form-actions">
+              <button type="submit" class="primary">Save</button>
+              <span id="config-msg" class="muted" role="status"></span>
+            </div>
+          </form>
+        </section>
+        <section class="card db" aria-labelledby="db-title">
+          <h2 id="db-title">Database</h2>
+          <p class="muted lead">Stored in the app's data folder on this device.</p>
           <dl id="db-stats"></dl>
-          <a id="export" class="button" href="api/export.csv" download>Download CSV for the selected range</a>
-        </div>
+        </section>
       </div>
-    </details>
+    </section>
   </main>
 
   <footer class="muted">Pulse {{version}} · The data stays on this device.</footer>
