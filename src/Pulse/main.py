@@ -130,15 +130,31 @@ def log_database(store: Store) -> None:
     )
 
 
+def describe(values: dict) -> str:
+    """One line on what a sample holds, for the log."""
+
+    def count(prefix: str) -> int:
+        return sum(1 for k in values if k.startswith(prefix) and not k.endswith("@all"))
+
+    return (
+        f"{len(values)} values: {count('cpu.core_pct@')} cores, {count('temp.zone_c@')} thermal zones, "
+        f"{count('net.rx_bps@')} interfaces, {count('disk.used_pct@')} disks, {count('app.cpu_pct@')} apps measured"
+    )
+
+
 def run(stop: threading.Event, collector: Collector, store: Store, config: Config, launcher, interval_override: int) -> None:
     now = time.monotonic()
     next_flush = now + FLUSH_EVERY_S
     next_maintain = now + 60  # first clean-up a minute after start
     next_check = now + LAUNCHER_CHECK_S
     clock_warned = False
+    samples = 0
     while not stop.is_set():
         started = time.monotonic()
         values = collector.sample()
+        samples += 1
+        if samples == 3:  # rates need earlier readings: by now every source has given what it can
+            Logger.info(LOG_TAG, f"sampling: {describe(values)}")
         wall = time.time()
         if wall >= VALID_CLOCK:
             store.add(int(wall), values)
