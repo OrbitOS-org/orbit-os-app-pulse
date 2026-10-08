@@ -23,8 +23,9 @@ It is also an example of a complete Orbit OS app in Python: it reads the device 
   - Every sample is kept for 48 hours.
   - 5-minute averages are kept for 30 days, and hourly averages for 2 years.
   - The database has a size limit (200 MB by default).
-  - All of these can be changed on the page.
-- **CSV export** of the selected range.
+  - All of these can be changed in the Settings tab.
+- **CSV export:** the **Download CSV** button exports every series in the selected range.
+- **Settings tab:** how often to sample, how long to keep each level of detail and the size limit, with the database size and how far back it goes.
 - Every chart has a table view and can be read with the keyboard.
 - Light and dark themes, following the browser.
 
@@ -41,6 +42,7 @@ It is also an example of a complete Orbit OS app in Python: it reads the device 
 - **Averages:** the 5-minute and hourly averages are computed as each period closes.
 - **Clean-up:** every hour Pulse deletes what is older than the retention times. If the database is still over the size limit, it removes the oldest data first.
 - **No other programs:** Pulse does not start any other program. It only reads files and calls the API.
+- **One active copy:** a lock file in the data folder (`pulse.lock`) lets only one Pulse process record at a time. If the system starts a second one, it waits idle. After an update, a copy whose code was replaced hands over to the new one.
 
 ## Network and security
 
@@ -55,6 +57,7 @@ Pulse keeps two files in its data folder on the device:
 
 - `pulse.db`: the history.
 - `config.json`: the recording settings.
+- `pulse.lock`: makes sure only one Pulse records at a time.
 
 | Event | Data |
 |---|---|
@@ -94,6 +97,7 @@ src/Pulse/
   lib/store.py       SQLite: samples, averages, retention, queries
   lib/server.py      page and JSON API (127.0.0.1 only)
   lib/config.py      recording settings (config.json)
+  lib/instances.py   one active Pulse at a time (pulse.lock)
   web/               the page: HTML, CSS and JavaScript, no libraries
   orb/icon.svg       Launcher and Store icon
 tests/               unit tests
