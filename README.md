@@ -28,9 +28,9 @@ Runs on Raspberry Pi, Arduino UNO Q and other ARM64 devices with Orbit OS (free 
 
 ## Install
 
-**From the Orbit OS Store (recommended):** install [Pulse](https://store.orbit-os.org/app/pulse?ref=github-pulse) on your device in one click.
+**From the Orbit OS Store (recommended):** install [Pulse](https://store.orbit-os.org/app/main-py?ref=github-pulse) on your device in one click.
 
-<a href="https://store.orbit-os.org/app/pulse?ref=github-pulse"><img src="https://www.orbit-os.org/images/badges/get-it-on-orbit-os-store@3x.png" width="200" alt="Get it on Orbit OS Store"></a>
+<a href="https://store.orbit-os.org/app/main-py?ref=github-pulse"><img src="https://www.orbit-os.org/images/badges/get-it-on-orbit-os-store@3x.png" width="200" alt="Get it on Orbit OS Store"></a>
 
 **From source — recommended: [Orbit Studio](https://marketplace.visualstudio.com/items?itemName=orbit-os.orbit-studio) (VS Code):**
 
@@ -87,7 +87,7 @@ This project follows the [Orbit Studio](https://marketplace.visualstudio.com/ite
 
 ## Links
 
-[App in the Store](https://store.orbit-os.org/app/pulse?ref=github-pulse) · [Orbit OS](https://www.orbit-os.org/?ref=github-pulse) · [Getting started](https://www.orbit-os.org/getting_started.html?ref=github-pulse) · [SDK reference](https://www.orbit-os.org/api-reference.html?ref=github-pulse) · [Forum](https://forum.orbit-os.org/?ref=github-pulse) · info@orbit-os.org
+[App in the Store](https://store.orbit-os.org/app/main-py?ref=github-pulse) · [Orbit OS](https://www.orbit-os.org/?ref=github-pulse) · [Getting started](https://www.orbit-os.org/getting_started.html?ref=github-pulse) · [SDK reference](https://www.orbit-os.org/api-reference.html?ref=github-pulse) · [Forum](https://forum.orbit-os.org/?ref=github-pulse) · info@orbit-os.org
 
 ## License
 
