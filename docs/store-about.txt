@@ -1,0 +1,28 @@
+Pulse shows how your Orbit OS device is doing, now and over time: CPU, memory, temperature, disk and network, as charts in your browser.
+
+Open Pulse from the device portal and the tiles at the top show the device as it is at this moment. Below them, the charts go back as far as you want: the last hour, six hours, a day, a week, a month or a year. It is the quickest way to answer questions such as "did it get hot this afternoon?", "is the memory slowly filling up?" or "which app is using the processor?".
+
+Pulse keeps its history on the device itself, in a small database that cleans up after itself. There is no cloud service and no account, and the device does not need internet access.
+
+What you can see:
+
+- CPU, for the whole processor or one line for each core
+- Memory, with swap when the device has it
+- Temperature, for every sensor
+- Network, for all interfaces together or one line for each
+- Disk activity, and the space used on every mounted disk
+- Load average
+- Every installed app, with its state and its CPU and memory use over time
+
+What you can do:
+
+- Look back from one hour to one year
+- Read any chart as a table, and export what you see as a CSV file
+- Choose how often Pulse takes a reading, how long it keeps the data and how much space it may use
+- Use it from a computer or a phone, in a light or a dark theme
+
+Months of history take little space: Pulse keeps every reading for the last two days, five-minute averages for a month and hourly averages for two years, inside a size limit you choose (200 MB by default).
+
+Pulse is also an example of a complete Orbit OS app written in Python. Its source code is open (Apache-2.0).
+
+After installation, open the device portal at http://<device_ip> and select the Pulse icon.
