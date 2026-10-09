@@ -1,6 +1,6 @@
 {
   "language": "python",
-  "name": "Pulse",
+  "name": "orbit-os-app-pulse",
   "appPath": "src/Pulse",
   "certsDir": "certs/grpc",
   "sdkVersion": "v26.1.0"
