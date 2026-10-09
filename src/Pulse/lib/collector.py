@@ -11,6 +11,12 @@ whether a value comes from the Orbit OS API or from /proc and /sys.
 - On the device only: /proc and /sys, for what that snapshot does not give: CPU over
   the exact interval, every thermal zone, interface and mount point, swap, and CPU
   and memory per app. Nothing here starts another program.
+
+Reading /proc and /sys is provisional. An Orbit OS app is meant to get what it
+needs from the API; these files are read only because the API does not give this
+detail yet. When it does (per core, per interface, per thermal zone, per mount
+point, and CPU and memory per app), read it from the API and remove the methods
+marked "provisional" below.
 """
 from __future__ import annotations
 
@@ -173,6 +179,7 @@ class Collector:
     # ── /proc and /sys (on the device) ─────────────────────────────────────
 
     def _cpu(self, values: dict) -> None:
+        # Provisional: read from /proc or /sys until the API gives this detail.
         counters: dict[str, float] = {}
         for line in self._read(self._proc, "stat").splitlines():
             if not line.startswith("cpu"):
@@ -212,6 +219,7 @@ class Collector:
                 values[f"cpu.core_pct@{label}"] = pct
 
     def _thermal(self, values: dict) -> None:
+        # Provisional: read from /proc or /sys until the API gives this detail.
         base = os.path.join(self._sys, "class", "thermal")
         try:
             zones = sorted(z for z in os.listdir(base) if z.startswith("thermal_zone"))
@@ -229,6 +237,7 @@ class Collector:
             values[f"temp.zone_c@{label}"] = milli / 1000.0
 
     def _network(self, values: dict) -> None:
+        # Provisional: read from /proc or /sys until the API gives this detail.
         counters: dict[str, float] = {}
         for line in self._read(self._proc, "net", "dev").splitlines()[2:]:
             if ":" not in line:
@@ -247,6 +256,7 @@ class Collector:
             values["net.tx_bps@all"] = sum(v for k, v in rates.items() if k.startswith("net.tx_bps@"))
 
     def _disks(self, values: dict) -> None:
+        # Provisional: read from /proc or /sys until the API gives this detail.
         by_device: dict[str, str] = {}
         for line in self._read(self._proc, "mounts").splitlines():
             parts = line.split()
@@ -269,6 +279,7 @@ class Collector:
             values[f"disk.used_bytes@{mount}"] = used
 
     def _swap(self, values: dict) -> None:
+        # Provisional: read from /proc or /sys until the API gives this detail.
         info = {}
         for line in self._read(self._proc, "meminfo").splitlines():
             name, _, rest = line.partition(":")
@@ -298,7 +309,12 @@ class Collector:
             self._apps = rows
 
     def _per_app(self, rows: list[dict], values: dict) -> None:
-        """CPU and memory per app: every process in the app's session (apps start with setsid)."""
+        """CPU and memory per app: every process in the app's session (apps start with setsid).
+
+        Provisional: it reads the processes of the other apps in /proc, which an
+        app should not depend on. To be replaced by the API when it reports the
+        resources each app uses.
+        """
         sessions = {r["pid"]: r for r in rows if r["running"] and r["pid"] > 0}
         ticks: dict[int, int] = {}
         rss: dict[int, int] = {}
