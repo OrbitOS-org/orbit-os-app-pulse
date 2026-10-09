@@ -1,110 +1,90 @@
 <p align="center">
-  <img src="src/Pulse/orb/icon.svg" alt="Pulse" width="96" height="96">
+  <img src="https://www.orbit-os.org/images/vscode/orbit-os-logo.png" width="300" alt="Orbit OS">
 </p>
 
-# Pulse
+<h1 align="center">Pulse for Orbit OS</h1>
 
-Pulse records how an Orbit OS device is doing over time — CPU, memory, temperature, disk and network — and shows it as charts in the device's Launcher. It keeps months of history on the device itself, in a small database that cleans up after itself.
+<p align="center"><b>See how your device is doing over time — CPU, memory, temperature, disk and network, as charts in your browser.</b></p>
 
-It is also an example of a complete Orbit OS app in Python: it reads the device through the Orbit OS API, keeps its data in the app's data folder, and serves its page through the Launcher.
+An [Orbit OS](https://www.orbit-os.org/?ref=github-pulse) app that records how a device is doing and shows it as charts in the device's Launcher. It keeps months of history on the device itself, in a small database that cleans up after itself — no cloud service and no account.
+
+It is also an example of a complete Orbit OS app in Python: it reads the device through the Orbit OS API with the [Orbit OS Python SDK](https://github.com/OrbitOS-org/orbit-os-sdk-python), keeps its data in the app's data folder, and serves its page through the Launcher.
+
+Runs on Raspberry Pi, Arduino UNO Q and other ARM64 devices with Orbit OS (free Community Edition).
 
 ## Features
 
-- **Live tiles:** CPU, memory, temperature, disk, network and uptime, as they are now.
-- **History:** 1 hour, 6 hours, 24 hours, 7 days, 30 days or 1 year, with the minimum and maximum shown around the average on long ranges.
-- **Charts:**
-  - CPU (all cores, or one line per core) and memory, with swap when the device has it.
-  - Temperature, for every sensor.
-  - Network (all interfaces, or one line per interface).
-  - Disk activity and disk space for every mounted disk.
-  - Load average.
-- **Apps:** every installed app with its state, and its CPU and memory use over time.
-- **Long-term recording:**
-  - Every sample is kept for 48 hours.
-  - 5-minute averages are kept for 30 days, and hourly averages for 2 years.
-  - The database has a size limit (200 MB by default).
-  - All of these can be changed in the Settings tab.
-- **CSV export:** the **Download CSV** button exports every series in the selected range.
-- **Settings tab:** how often to sample, how long to keep each level of detail and the size limit, with the database size and how far back it goes.
-- Every chart has a table view and can be read with the keyboard.
-- Light and dark themes, following the browser.
+- **Live tiles** — CPU, memory, temperature, disk, network and uptime, as they are now
+- **History from one hour to one year** — charts for CPU (all cores or one line per core), memory, temperature, network, disk and load
+- **Every app on the device** — its state, and its CPU and memory use over time
+- **Months of history in little space** — recent data in full detail, older data as averages, inside a size limit you choose
+- **CSV export** of every series in the selected range
+- **Settings on the page** — how often to sample, how long to keep the data and how much space to use
+- Charts with a table view and keyboard access; light and dark themes
+
+## Install
+
+**From the Orbit OS Store (recommended):** install [Pulse](https://store.orbit-os.org/app/pulse?ref=github-pulse) on your device in one click.
+
+<a href="https://store.orbit-os.org/app/pulse?ref=github-pulse"><img src="https://www.orbit-os.org/images/badges/get-it-on-orbit-os-store@3x.png" width="200" alt="Get it on Orbit OS Store"></a>
+
+**From source — recommended: [Orbit Studio](https://marketplace.visualstudio.com/items?itemName=orbit-os.orbit-studio) (VS Code):**
+
+You need [VS Code](https://code.visualstudio.com/) with the Orbit Studio extension and **[Python](https://www.python.org/downloads/) 3.13** installed.
+
+1. Clone the repository and open the folder in VS Code with the Orbit Studio extension:
+   ```bash
+   git clone https://github.com/OrbitOS-org/orbit-os-app-pulse
+   code orbit-os-app-pulse
+   ```
+2. In the Orbit sidebar, run **Add / Update SDK** and set your device's IP.
+3. Use **Run** to try it live against a device in Developer Mode, then **Build + Deploy** to install the signed `.orb`.
+
+**Without Orbit Studio:** with the SDK in `orbit-os-sdk-python/` and its packages installed in a virtual environment, `python src/Pulse/main.py --host <DEVICE_IP>` runs Pulse on your computer — use Orbit Studio to package and sign the `.orb`.
+
+## Getting started
+
+1. Open the device portal at `http://<DEVICE_IP>`, sign in, and open **Pulse** from the Launcher.
+2. The tiles at the top show the device as it is now; the charts fill in as Pulse records.
+3. Choose a range, from **1 hour** to **1 year**, to look back. **Download CSV** exports what you see.
+4. In **Settings**, choose how often Pulse samples, how long it keeps the data and how much space it may use.
 
 ## How it works
 
-| Where the values come from | What |
+Pulse reads the device every 30 seconds through the Orbit OS API and writes the values to a small database in its data folder. It keeps every sample for 48 hours, 5-minute averages for 30 days and hourly averages for 2 years, and it stays under a size limit (200 MB by default). All of these can be changed in **Settings**.
+
+Where each value comes from, how the data is stored and cleaned up, and the map of the code are in [docs/how-it-works.md](docs/how-it-works.md).
+
+## Development (Orbit Studio)
+
+This project follows the [Orbit Studio](https://marketplace.visualstudio.com/items?itemName=orbit-os.orbit-studio) layout for Python apps:
+
+| Path | What |
 |---|---|
-| Orbit OS API: `SystemService` | Memory, load, uptime, CPU frequency, SoC temperature, disk `/`, disk and network counters, device info |
-| Orbit OS API: `PackageManagerService` | Installed apps and their processes |
-| `/proc` and `/sys` (on the device) | CPU over the exact interval, every core, thermal zone, network interface and mounted disk, swap, CPU and memory per app |
+| `src/Pulse/` | app source — `main.py` (start-up, sampling loop, Launcher registration), `metadata.json` (manifest & permissions) |
+| `src/Pulse/lib/` | reading the device, the database, the settings and the page's server |
+| `src/Pulse/web/` | the page: HTML, CSS and JavaScript, with no external libraries |
+| `src/Pulse/orb/icon.svg` | launcher / Store icon |
+| `tests/` | unit tests (standard library only) |
+| `orbit.project.json` | Orbit Studio project settings |
 
-- **Sampling:** every 30 seconds by default (10–300).
-- **Storage:** samples are written to `pulse.db` (SQLite) once a minute, to spare the SD card. If the app is stopped abruptly, at most the last minute is lost.
-- **Averages:** the 5-minute and hourly averages are computed as each period closes.
-- **Clean-up:** every hour Pulse deletes what is older than the retention times. If the database is still over the size limit, it removes the oldest data first.
-- **No other programs:** Pulse does not start any other program. It only reads files and calls the API.
-- **One active copy:** a lock file in the data folder (`pulse.lock`) lets only one Pulse process record at a time. If the system starts a second one, it waits idle. After an update, a copy whose code was replaced hands over to the new one.
+- **Recommended workflow:** open the folder in VS Code with Orbit Studio, **Add / Update SDK** (downloads the SDK into `orbit-os-sdk-python/` and creates `.venv`; neither is in the repository), then **Run** to develop against a device in Developer Mode, or **Build + Deploy** to install the `.orb`.
+- With **Run**, the page is served on your computer at `http://127.0.0.1:<port>`, with the port shown in the log, and the data goes to `.pulse-data/`. The CPU and memory use of each app is measured only when Pulse runs on the device.
+- Development TLS certificates live in `certs/grpc/` and are never committed.
+- Tests: `python -m unittest discover -s tests`, with the Python of `.venv`.
 
-## Network and security
+## Security
 
-- **No network ports.** The page listens on `127.0.0.1` only, on a free port between 50000 and 60000.
-- **Behind the device login.** Pulse registers the page with the Orbit OS Launcher, which serves it at `http://<device>/pulse`.
-- **Data stays on the device.** Pulse needs no internet access and no account.
-- **Permissions:** `SystemService`, `PackageManagerService` (apps and their processes) and `AppHubService` (to register the page with the Launcher).
+- The page listens on `127.0.0.1` only and is reached through the Orbit OS Launcher, at `http://<DEVICE_IP>/pulse`, behind the device login. It is not reachable directly from the network.
+- The app takes a port in the reserved range 50000–60000 (starting at 50480) and moves to the next one when a port is taken.
+- Everything stays on the device: Pulse needs no internet access and no account. Its history and its settings are in the app's data folder; they are kept across restarts and updates and removed when the app is uninstalled.
+- Pulse does not start any other program: it only calls the API and reads system files.
+- Permissions used: `SystemService`, `PackageManagerService`, `AppHubService`.
 
-## Data on the device
+## Links
 
-Pulse keeps two files in its data folder on the device:
-
-- `pulse.db`: the history.
-- `config.json`: the recording settings.
-- `pulse.lock`: makes sure only one Pulse records at a time.
-
-| Event | Data |
-|---|---|
-| App or device restart, app update, Orbit OS update | kept |
-| App uninstalled | deleted |
-
-## Development
-
-You need Python 3.13 and [Orbit Studio](https://www.orbit-os.org/) for VS Code.
-
-1. Clone this repository and open the folder in VS Code.
-2. In Orbit Studio, run **Add / Update SDK**. It downloads the Python SDK (version in `orbit.project.json`) and creates `.venv`. The SDK is not part of this repository.
-3. **Run** starts Pulse on your computer against a device in Developer Mode. The page opens at `http://127.0.0.1:50480/` on your computer, and the data goes to `.pulse-data/`. You can also start it yourself:
-
-   ```bash
-   .venv/Scripts/python src/Pulse/main.py --host <device address>   # Windows
-   .venv/bin/python src/Pulse/main.py --host <device address>       # Linux / macOS
-   ```
-
-   In this mode the per-app CPU and memory are not measured; they need `/proc` on the device.
-
-4. **Build ORB**, then **Deploy**, installs it on the device. It shows up in the Launcher as Pulse.
-
-**Tests** (standard library only):
-
-```bash
-.venv/Scripts/python -m unittest discover -s tests
-```
-
-**Project layout:**
-
-```
-src/Pulse/
-  main.py            start-up, sampling loop, Launcher registration
-  metadata.json      name, version, permissions
-  lib/collector.py   reads the API, /proc and /sys
-  lib/store.py       SQLite: samples, averages, retention, queries
-  lib/server.py      page and JSON API (127.0.0.1 only)
-  lib/config.py      recording settings (config.json)
-  lib/instances.py   one active Pulse at a time (pulse.lock)
-  web/               the page: HTML, CSS and JavaScript, no libraries
-  orb/icon.svg       Launcher and Store icon
-tests/               unit tests
-```
-
-The page's icon, `web/favicon.svg`, is a copy of `orb/icon.svg`. Keep the two the same.
+[App in the Store](https://store.orbit-os.org/app/pulse?ref=github-pulse) · [Orbit OS](https://www.orbit-os.org/?ref=github-pulse) · [Getting started](https://www.orbit-os.org/getting_started.html?ref=github-pulse) · [SDK reference](https://www.orbit-os.org/api-reference.html?ref=github-pulse) · [Forum](https://forum.orbit-os.org/?ref=github-pulse) · info@orbit-os.org
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
