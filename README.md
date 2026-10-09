@@ -12,6 +12,10 @@ It is also an example of a complete Orbit OS app in Python: it reads the device 
 
 Runs on Raspberry Pi, Arduino UNO Q and other ARM64 devices with Orbit OS (free Community Edition).
 
+<p align="center">
+  <img src="docs/store-screenshots/desktop-1-dashboard.png" width="720" alt="Pulse: the device as it is now, and 24 hours of CPU, memory, temperature and network as charts">
+</p>
+
 ## Features
 
 - **Live tiles** — CPU, memory, temperature, disk, network and uptime, as they are now
